@@ -2,8 +2,8 @@ import sys
 import numpy as np
 
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QLineEdit, QComboBox, QGroupBox
+    QApplication, QWidget, QLabel, QPushButton,
+    QLineEdit, QComboBox, QGridLayout, QGroupBox, QVBoxLayout
 )
 from PyQt6.QtCore import QTimer
 
@@ -13,14 +13,17 @@ from matplotlib.figure import Figure
 from core_physics import compute_output, compute_trajectory
 
 
-# ====================== Canvas ======================
+# ====================== Sphere Canvas ======================
 class SphereCanvas(FigureCanvas):
     def __init__(self):
-        self.fig = Figure(figsize=(6, 5))
+        self.fig = Figure()
         super().__init__(self.fig)
 
         self.ax = self.fig.add_subplot(111, projection='3d')
         self.ax.set_box_aspect([1, 1, 1])
+
+        # remove padding
+        self.fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 
         self.draw_base()
 
@@ -39,13 +42,17 @@ class SphereCanvas(FigureCanvas):
         self.ax.plot_surface(x, y, z, alpha=0.2)
 
         # axes
-        self.ax.plot([-1.5,1.5],[0,0],[0,0])
-        self.ax.plot([0,0],[-1.5,1.5],[0,0])
-        self.ax.plot([0,0],[0,0],[-1.5,1.5])
+        self.ax.plot([-1.2,1.2],[0,0],[0,0])
+        self.ax.plot([0,0],[-1.2,1.2],[0,0])
+        self.ax.plot([0,0],[0,0],[-1.2,1.2])
 
-        self.ax.text(1.6,0,0,'S1')
-        self.ax.text(0,1.6,0,'S2')
-        self.ax.text(0,0,1.6,'S3')
+        self.ax.text(1.3,0,0,'S1')
+        self.ax.text(0,1.3,0,'S2')
+        self.ax.text(0,0,1.3,'S3')
+
+        self.ax.set_xlim([-1.2, 1.2])
+        self.ax.set_ylim([-1.2, 1.2])
+        self.ax.set_zlim([-1.2, 1.2])
 
         self.ax.set_axis_off()
 
@@ -66,71 +73,69 @@ class SphereCanvas(FigureCanvas):
         self.point._offsets3d = ([x], [y], [z])
 
 
-# ====================== Main UI ======================
+# ====================== MAIN UI ======================
 class PolarizationUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Poincaré Sphere Simulator")
 
-        main_layout = QVBoxLayout()
+        layout = QGridLayout()
 
-        # ===================== TOP: CANVAS =====================
+        # ===== SPHERE (LEFT, BIG) =====
         self.canvas = SphereCanvas()
-        main_layout.addWidget(self.canvas)
+        sphere_box = QGroupBox()
+        v1 = QVBoxLayout()
+        v1.addWidget(self.canvas)
+        sphere_box.setLayout(v1)
 
-        # ===================== BOTTOM: TWO PANELS =====================
-        bottom_layout = QHBoxLayout()
-
-        # -------- LEFT: CONTROLS --------
+        # ===== CONTROLS (TOP RIGHT) =====
         control_box = QGroupBox("Controls")
-        control_layout = QVBoxLayout()
-
-        # Jones input
-        control_layout.addWidget(QLabel("Jones Vector"))
+        v2 = QVBoxLayout()
 
         self.theta_input = QLineEdit()
         self.theta_input.setPlaceholderText("theta (deg)")
-        control_layout.addWidget(self.theta_input)
+        v2.addWidget(self.theta_input)
 
         self.delta_input = QLineEdit()
         self.delta_input.setPlaceholderText("delta (deg)")
-        control_layout.addWidget(self.delta_input)
-
-        # Waveplate
-        control_layout.addWidget(QLabel("Waveplate"))
+        v2.addWidget(self.delta_input)
 
         self.plate_select = QComboBox()
         self.plate_select.addItems(["HWP", "QWP"])
-        control_layout.addWidget(self.plate_select)
+        v2.addWidget(self.plate_select)
 
         self.angle_input = QLineEdit()
         self.angle_input.setPlaceholderText("alpha (deg)")
-        control_layout.addWidget(self.angle_input)
+        v2.addWidget(self.angle_input)
 
-        # Run button
-        self.run_button = QPushButton("Run Simulation")
-        control_layout.addWidget(self.run_button)
+        self.run_button = QPushButton("Run")
+        v2.addWidget(self.run_button)
 
-        control_box.setLayout(control_layout)
+        control_box.setLayout(v2)
 
-        # -------- RIGHT: RESULTS --------
+        # ===== RESULTS (BOTTOM RIGHT) =====
         result_box = QGroupBox("Results")
-        result_layout = QVBoxLayout()
+        v3 = QVBoxLayout()
 
         self.result_label = QLabel("Result will appear here")
-        result_layout.addWidget(self.result_label)
+        v3.addWidget(self.result_label)
 
-        result_box.setLayout(result_layout)
+        result_box.setLayout(v3)
 
-        # add both panels
-        bottom_layout.addWidget(control_box, 1)
-        bottom_layout.addWidget(result_box, 1)
+        # ===== GRID PLACEMENT =====
+        layout.addWidget(sphere_box, 0, 0, 2, 1)  # big sphere
+        layout.addWidget(control_box, 0, 1)
+        layout.addWidget(result_box, 1, 1)
 
-        main_layout.addLayout(bottom_layout)
+        # stretch (important)
+        layout.setColumnStretch(0, 3)
+        layout.setColumnStretch(1, 2)
 
-        self.setLayout(main_layout)
+        layout.setRowStretch(0, 3)
+        layout.setRowStretch(1, 2)
 
-        # connect button
+        self.setLayout(layout)
+
         self.run_button.clicked.connect(self.run_animation)
 
     # ================= Jones =================
@@ -145,10 +150,7 @@ class PolarizationUI(QWidget):
         ey = np.sin(theta) * np.exp(1j * delta)
 
         norm = np.sqrt(abs(ex)**2 + abs(ey)**2)
-        ex /= norm
-        ey /= norm
-
-        return (ex, ey)
+        return (ex/norm, ey/norm)
 
     # ================= Animation =================
     def run_animation(self):
@@ -181,7 +183,6 @@ class PolarizationUI(QWidget):
         def animate():
             if self.step >= len(trajectory):
                 self.timer.stop()
-
                 result = compute_output(jones, plate, alpha)
                 self.update_result(p0, result)
                 return
@@ -213,14 +214,10 @@ class PolarizationUI(QWidget):
         hand = result["handedness"]
 
         self.result_label.setText(
-            f"INPUT:\n"
-            f"x={p0[0]:.3f}, y={p0[1]:.3f}, z={p0[2]:.3f}\n\n"
-            f"FINAL:\n"
-            f"x={p[0]:.3f}, y={p[1]:.3f}, z={p[2]:.3f}\n\n"
-            f"ψ = {np.rad2deg(psi):.2f}°\n"
-            f"χ = {np.rad2deg(chi):.2f}°\n"
-            f"Ellipticity = {e:.3f}\n"
-            f"{hand}"
+            f"INPUT:\n({p0[0]:.2f}, {p0[1]:.2f}, {p0[2]:.2f})\n\n"
+            f"FINAL:\n({p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f})\n\n"
+            f"ψ={np.rad2deg(psi):.2f}°, χ={np.rad2deg(chi):.2f}°\n"
+            f"Ellipticity={e:.3f}\n{hand}"
         )
 
 
@@ -228,6 +225,6 @@ class PolarizationUI(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = PolarizationUI()
-    window.resize(900, 700)
+    window.resize(1100, 750)
     window.show()
     sys.exit(app.exec())
