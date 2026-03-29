@@ -201,5 +201,3 @@ print("Ellipticity:", ellipticity)
 print("Handedness:", handedness)
 #=============================================================================
 
-def compute_output(jones, plate, angle):
-    return p_new, chi, psi, ellipticity, handedness
