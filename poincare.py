@@ -200,3 +200,6 @@ print("psi (deg):", np.rad2deg(psi_final))
 print("Ellipticity:", ellipticity)
 print("Handedness:", handedness)
 #=============================================================================
+
+def compute_output(jones, plate, angle):
+    return p_new, chi, psi, ellipticity, handedness
