@@ -1,0 +1,6 @@
+input wave at 30 degree  
+j0  =  \left[\begin{matrix}- \frac{\sqrt{6}}{4}\\\frac{\sqrt{2}}{4}\end{matrix}\right]
+angle0 = \mathtt{\text{\textbackslashfrac\{5 \textbackslashpi\}\{6\}}}
+j1  =  \left[\begin{matrix}\frac{\sqrt{2}}{4}\\\frac{\sqrt{6}}{4}\end{matrix}\right]
+angle1 = \mathtt{\text{\textbackslashfrac\{\textbackslashpi\}\{3\}}}
+

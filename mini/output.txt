@@ -1,0 +1,28 @@
+input wave at 30 degree  
+j0  =  \left[\begin{matrix}- \frac{\sqrt{6}}{4}\\\frac{\sqrt{2}}{4}\end{matrix}\right]
+angle0 = \mathtt{\text{\textbackslashmathtt\{\textbackslashtext\{\textbackslashtextbackslashfrac\textbackslash\{\textbackslashtextbackslashpi\textbackslash\}\textbackslash\{3\textbackslash\}\}\}}}
+j1  =  \left[\begin{matrix}\frac{\sqrt{2}}{4}\\\frac{\sqrt{6}}{4}\end{matrix}\right]
+angle1 = \mathtt{\text{\textbackslashfrac\{\textbackslashpi\}\{3\}}}
+input wave at 75 degree  
+j0  =  \left[\begin{matrix}\frac{1}{4} - \frac{\sqrt{3}}{4}\\\frac{1}{4} + \frac{\sqrt{3}}{4}\end{matrix}\right]
+angle0 = \frac{7 \pi}{12}
+j1  =  \left[\begin{matrix}\frac{1}{4} + \frac{\sqrt{3}}{4}\\- \frac{1}{4} + \frac{\sqrt{3}}{4}\end{matrix}\right]
+angle1 = \frac{\pi}{12}
+input wave at 120 degree  
+j0  =  \left[\begin{matrix}\frac{\sqrt{2}}{4}\\\frac{\sqrt{6}}{4}\end{matrix}\right]
+angle0 = \frac{\pi}{3}
+j1  =  \left[\begin{matrix}\frac{\sqrt{6}}{4}\\- \frac{\sqrt{2}}{4}\end{matrix}\right]
+angle1 = - \frac{\pi}{6}
+
+input wave at 165 degree  
+j0  =  \left[\begin{matrix}\frac{1}{4} + \frac{\sqrt{3}}{4}\\- \frac{1}{4} + \frac{\sqrt{3}}{4}\end{matrix}\right]
+angle0 = \frac{\pi}{12}
+j1  =  \left[\begin{matrix}- \frac{1}{4} + \frac{\sqrt{3}}{4}\\- \frac{\sqrt{3}}{4} - \frac{1}{4}\end{matrix}\right]
+angle1 = - \frac{5 \pi}{12}
+
+input wave at 210 degree  
+j0  =  \left[\begin{matrix}\frac{\sqrt{6}}{4}\\- \frac{\sqrt{2}}{4}\end{matrix}\right]
+angle0 = - \frac{\pi}{6}
+j1  =  \left[\begin{matrix}- \frac{\sqrt{2}}{4}\\- \frac{\sqrt{6}}{4}\end{matrix}\right]
+angle1 = - \frac{2 \pi}{3}
+

@@ -156,9 +156,9 @@ def update(frame):
 from matplotlib.animation import FuncAnimation
 
 ani = FuncAnimation(fig, update, frames=len(angles), interval=10,repeat=False)
-ax.text(1.6, 0, 0, '$S_1$')
-ax.text(0, 1.6, 0, '$S_2$')
-ax.text(0, 0, 1.6, '$S_3$')
+ax.text(1.6, 0, 0, '$S_1(H)$')
+ax.text(0, 1.6, 0, '$S_2(+45)$')
+ax.text(0, 0, 1.6, '$S_3(RCP)$')
 #plt.show()
 #==========================================================================
 #=========================extract final points==============================
