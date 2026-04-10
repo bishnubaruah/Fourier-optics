@@ -1,4 +1,5 @@
 import sys
+from unittest import result
 import numpy as np
 
 from PyQt6.QtWidgets import (
@@ -22,9 +23,7 @@ class SphereCanvas(FigureCanvas):
         self.ax = self.fig.add_subplot(111, projection='3d')
         self.ax.set_box_aspect([1, 1, 1])
 
-        # remove padding
         self.fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-
         self.draw_base()
 
     def draw_base(self):
@@ -46,9 +45,9 @@ class SphereCanvas(FigureCanvas):
         self.ax.plot([0,0],[-1.2,1.2],[0,0])
         self.ax.plot([0,0],[0,0],[-1.2,1.2])
 
-        self.ax.text(1.3,0,0,'S1')
-        self.ax.text(0,1.3,0,'S2')
-        self.ax.text(0,0,1.3,'S3')
+        self.ax.text(1.3,0,0,'$S_1(H)$')
+        self.ax.text(0,1.3,0,'$S_2(+45)$')
+        self.ax.text(0,0,1.3,'$S_3(RCP)$')
 
         self.ax.set_xlim([-1.2, 1.2])
         self.ax.set_ylim([-1.2, 1.2])
@@ -57,8 +56,8 @@ class SphereCanvas(FigureCanvas):
         self.ax.set_axis_off()
 
     def draw_waveplate_axis(self, alpha):
-        nx = np.cos(2*alpha)
-        ny = np.sin(2*alpha)
+        nx = np.cos(alpha) #wave plate fast axis
+        ny = np.sin(alpha) #wave plate fast axis
         nz = 0
 
         t = np.linspace(-1, 1, 100)
@@ -81,39 +80,48 @@ class PolarizationUI(QWidget):
 
         layout = QGridLayout()
 
-        # ===== SPHERE (LEFT, BIG) =====
+        # ===== SPHERE =====
         self.canvas = SphereCanvas()
         sphere_box = QGroupBox()
         v1 = QVBoxLayout()
         v1.addWidget(self.canvas)
         sphere_box.setLayout(v1)
 
-        # ===== CONTROLS (TOP RIGHT) =====
+        # ===== CONTROLS =====
         control_box = QGroupBox("Controls")
         v2 = QVBoxLayout()
 
+        # ---- Input Wave ----
+        v2.addWidget(QLabel("$Input Wave (\theta θ in deg)$"))
         self.theta_input = QLineEdit()
-        self.theta_input.setPlaceholderText("theta (deg)")
+        self.theta_input.setPlaceholderText("theta")
         v2.addWidget(self.theta_input)
 
+        # ---- Phase Difference ----
+        v2.addWidget(QLabel("Phase Difference δ (deg)"))
         self.delta_input = QLineEdit()
-        self.delta_input.setPlaceholderText("delta (deg)")
+        self.delta_input.setPlaceholderText("delta")
         v2.addWidget(self.delta_input)
 
+        # ---- Waveplate Type ----
+        v2.addWidget(QLabel("Waveplate Type"))
         self.plate_select = QComboBox()
         self.plate_select.addItems(["HWP", "QWP"])
         v2.addWidget(self.plate_select)
 
+        # ---- Fast Axis ----
+        v2.addWidget(QLabel("Fast Axis α (deg)"))
         self.angle_input = QLineEdit()
-        self.angle_input.setPlaceholderText("alpha (deg)")
+        self.angle_input.setPlaceholderText("alpha")
         v2.addWidget(self.angle_input)
 
+        # ---- Run Button ----
         self.run_button = QPushButton("Run")
         v2.addWidget(self.run_button)
 
         control_box.setLayout(v2)
 
-        # ===== RESULTS (BOTTOM RIGHT) =====
+        # ===== RESULTS =====
         result_box = QGroupBox("Results")
         v3 = QVBoxLayout()
 
@@ -122,15 +130,13 @@ class PolarizationUI(QWidget):
 
         result_box.setLayout(v3)
 
-        # ===== GRID PLACEMENT =====
-        layout.addWidget(sphere_box, 0, 0, 2, 1)  # big sphere
+        # ===== LAYOUT =====
+        layout.addWidget(sphere_box, 0, 0, 2, 1)
         layout.addWidget(control_box, 0, 1)
         layout.addWidget(result_box, 1, 1)
 
-        # stretch (important)
         layout.setColumnStretch(0, 3)
         layout.setColumnStretch(1, 2)
-
         layout.setRowStretch(0, 3)
         layout.setRowStretch(1, 2)
 
@@ -163,18 +169,15 @@ class PolarizationUI(QWidget):
         jones = self.get_jones()
 
         self.canvas.draw_base()
-        self.canvas.draw_waveplate_axis(alpha)
+        self.canvas.draw_waveplate_axis(2*alpha) #wave plate
 
         trajectory = compute_trajectory(jones, plate, alpha)
 
-        # input point
         p0 = trajectory[0]
         self.canvas.ax.scatter(p0[0], p0[1], p0[2], color='blue', s=60)
 
-        # moving point
         self.canvas.draw_point(p0)
 
-        # trajectory
         self.traj_x, self.traj_y, self.traj_z = [], [], []
         self.line, = self.canvas.ax.plot([], [], [], color='blue')
 
@@ -213,11 +216,19 @@ class PolarizationUI(QWidget):
         e = result["ellipticity"]
         hand = result["handedness"]
 
+    # ---- FIX: handle circular polarization ----
+        if psi is None:
+            psi_text = "Undefined (circular)"
+        else:
+            psi_text = f"{np.rad2deg(2*psi):.2f}°"
+
         self.result_label.setText(
             f"INPUT:\n({p0[0]:.2f}, {p0[1]:.2f}, {p0[2]:.2f})\n\n"
-            f"FINAL:\n({p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f})\n\n"
-            f"ψ={np.rad2deg(psi):.2f}°, χ={np.rad2deg(chi):.2f}°\n"
-            f"Ellipticity={e:.3f}\n{hand}"
+            #f"FINAL:\n({p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f})\n\n"
+            f"2ψ = {psi_text}\n"
+            f"2χ = {np.rad2deg(2*chi):.2f}°\n"
+            f"Ellipticity = {e:.3f}\n"
+            f"{hand}"
         )
 
 

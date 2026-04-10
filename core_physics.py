@@ -22,7 +22,7 @@ def compute_output(jones, plate, alpha):
 
     p = np.array([x, y, z])
 
-    # ===== rotation axis from waveplate =====
+    # ===== rotation axis (KEEP YOUR 2*alpha) =====
     theta_axis = np.pi / 2
     phi_axis = 2 * alpha
 
@@ -53,9 +53,16 @@ def compute_output(jones, plate, alpha):
 
     final_point = R @ p
 
+    # ===== normalize (IMPORTANT) =====
+    final_point = final_point / np.linalg.norm(final_point)
+
     # ===== back to spherical =====
     fx, fy, fz = final_point
     fz = np.clip(fz, -1, 1)
+
+    # if abs(fz) < 1e-6:
+    #     if fx < 0:
+    #         fx, fy = -fx, -fy
 
     theta_f = np.arccos(fz)
     phi_f = np.arctan2(fy, fx)
@@ -63,30 +70,35 @@ def compute_output(jones, plate, alpha):
     if phi_f < 0:
         phi_f += 2*np.pi
 
-    # ===== chi, psi =====
+    # ===== chi (always valid) =====
     chi = (np.pi/2 - theta_f)/2
-    psi = phi_f/2
+
+    # ===== FIX: psi undefined at poles =====
+    if abs(fz) > 0.999:   # circular polarization
+        psi = None
+    else:
+        psi = phi_f / 2
 
     ellipticity = np.tan(chi)
 
     # ===== handedness =====
     if chi > 1e-6:
-        handedness = "Left-handed"
-    elif chi < -1e-6:
         handedness = "Right-handed"
+    elif chi < -1e-6:
+        handedness = "Left-handed"
     else:
         handedness = "Linear"
 
     return {
         "point": final_point,
         "chi": chi,
-        "psi": psi,
+        "psi": psi,   # can be None now
         "ellipticity": ellipticity,
         "handedness": handedness
     }
 
-#========================trajectory update function========================
-#==========================================================================
+
+# ================= TRAJECTORY =================
 def compute_trajectory(jones, plate, alpha, steps=50):
     ex, ey = jones
 
@@ -107,7 +119,7 @@ def compute_trajectory(jones, plate, alpha, steps=50):
         np.cos(theta)
     ])
 
-    # --- axis ---
+    # --- axis (KEEP 2*alpha) ---
     theta_axis = np.pi/2
     phi_axis = 2 * alpha
 
@@ -119,9 +131,9 @@ def compute_trajectory(jones, plate, alpha, steps=50):
 
     # --- angle ---
     if plate == "HWP":
-        total_angle = np.pi
+        total_angle = -np.pi
     elif plate == "QWP":
-        total_angle = np.pi/2
+        total_angle = -np.pi/2
     else:
         total_angle = 0
 
@@ -140,6 +152,7 @@ def compute_trajectory(jones, plate, alpha, steps=50):
     for m in angles:
         R = I*np.cos(m) + (1-np.cos(m))*np.outer(n,n) + K*np.sin(m)
         p_new = R @ p
+        p_new = p_new / np.linalg.norm(p_new)  # keep on sphere
         trajectory.append(p_new)
 
     return trajectory
