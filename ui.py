@@ -92,7 +92,7 @@ class PolarizationUI(QWidget):
         v2 = QVBoxLayout()
 
         # ---- Input Wave ----
-        v2.addWidget(QLabel("Input Wave (θ in deg)"))
+        v2.addWidget(QLabel("$Input Wave (\theta θ in deg)$"))
         self.theta_input = QLineEdit()
         self.theta_input.setPlaceholderText("theta")
         v2.addWidget(self.theta_input)
